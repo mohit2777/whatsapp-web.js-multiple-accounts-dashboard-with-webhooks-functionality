@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - WhatsApp Multi-Automation</title>
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <style>
+      /* Lock page scroll when a modal is open */
+      body.modal-open { overflow: hidden; height: 100vh; }
+      /* Ensure modal overlay covers page and doesn't scroll the page */
+      .modal { position: fixed; inset: 0; overflow: hidden; }
+      /* Send modal content should be a flex column with internal scroll area */
+      #sendMessageModal .modal-content { display: flex; flex-direction: column; max-height: 90vh; }
+    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fab fa-whatsapp"></i> WA Multi-Auto</h2>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" data-view="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-view="accounts">
+                        <i class="fas fa-users"></i>
+                        Accounts
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-view="webhooks">
+                        <i class="fas fa-link"></i>
+                        Webhooks
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-view="messages">
+                        <i class="fas fa-comments"></i>
+                        Messages
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-view="logs">
+                        <i class="fas fa-list-alt"></i>
+                        Logs
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Manage your WhatsApp automation accounts</p>
+                </div>
+                
+                <div class="user-menu">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+
+            <!-- Dashboard Content -->
+            <div id="mainContent">
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card fade-in">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Total Accounts</div>
+                    </div>
+                    <div class="stat-card fade-in">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Active Accounts</div>
+                    </div>
+                    <div class="stat-card fade-in">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">Total Messages</div>
+                    </div>
+                    <div class="stat-card fade-in">
+                        <div class="stat-number">0%</div>
+                        <div class="stat-label">Success Rate</div>
+                    </div>
+                </div>
+
+                <!-- Accounts Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">WhatsApp Accounts</div>
+                            <div class="card-subtitle">Manage your connected WhatsApp accounts</div>
+                        </div>
+                        <button class="btn btn-primary" id="createAccountBtn">
+                            <i class="fas fa-plus"></i> Add Account
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Account</th>
+                                    <th>Status</th>
+                                    <th>Phone Number</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        <i class="fas fa-users fa-2x mb-2"></i>
+                                        <p>No accounts found</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Messages -->
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">Recent Messages</div>
+                            <div class="card-subtitle">Latest incoming and outgoing messages</div>
+                        </div>
+                    </div>
+                    
+                    <div id="recentMessages">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-comments fa-2x mb-2"></i>
+                            <p>No recent messages</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    
+    <!-- Create Account Modal -->
+    <div class="modal" id="createAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New WhatsApp Account</h3>
+                <p class="modal-subtitle">Add a new WhatsApp account to your automation system</p>
+            </div>
+            
+            <form id="createAccountForm">
+                <div class="form-group">
+                    <label for="accountName" class="form-label">Account Name</label>
+                    <input type="text" id="accountName" name="name" class="form-input" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="accountDescription" class="form-label">Description (Optional)</label>
+                    <textarea id="accountDescription" name="description" class="form-input" rows="3"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary modal-close" style="flex: 1;">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Scan QR Code</h3>
+                <p class="modal-subtitle">Open WhatsApp on your phone and scan this QR code</p>
+            </div>
+            
+            <div class="qr-code">
+                <img src="" alt="QR Code" id="qrCodeImage">
+            </div>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="btn btn-secondary modal-close">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webhooks Modal -->
+    <div class="modal" id="webhooksModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Manage Webhooks</h3>
+                <p class="modal-subtitle">Configure webhooks for this account</p>
+            </div>
+            
+            <div class="webhooks-list" id="webhooksList">
+                <!-- Webhooks will be populated here -->
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-primary" onclick="dashboard.showCreateWebhookModal()">
+                    <i class="fas fa-plus"></i> Add Webhook
+                </button>
+                <button class="btn btn-secondary modal-close" style="margin-left: 1rem;">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Webhook Modal -->
+    <div class="modal" id="createWebhookModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Webhook</h3>
+                <p class="modal-subtitle">Add a webhook to receive message notifications</p>
+            </div>
+            
+            <form id="createWebhookForm">
+                <div class="form-group">
+                    <label for="webhookUrl" class="form-label">Webhook URL</label>
+                    <input type="url" id="webhookUrl" name="url" class="form-input" required 
+                           placeholder="https://your-domain.com/webhook">
+                </div>
+                
+                <div class="form-group">
+                    <label for="webhookSecret" class="form-label">Secret (Optional)</label>
+                    <input type="text" id="webhookSecret" name="secret" class="form-input" 
+                           placeholder="Your webhook secret">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="webhookActive" name="is_active" checked>
+                        Active
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary modal-close" style="flex: 1;">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-plus"></i> Create Webhook
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Send Message Modal -->
+    <div class="modal" id="sendMessageModal">
+        <div class="modal-content" style="width: 90vw; max-width: 860px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header">
+                <h3 class="modal-title">Send Message</h3>
+                <p class="modal-subtitle">Send a message from this WhatsApp account</p>
+            </div>
+            
+            <form id="sendMessageForm" style="display:flex; flex-direction:column; gap: 0.75rem; height: 100%;">
+                <input type="hidden" id="messageAccountId" name="account_id">
+                <div id="sendFormBody" style="flex:1; min-height:0; overflow-y:auto; padding-right: 4px;">
+                  <div class="form-group">
+                    <label for="messageNumber" class="form-label">Phone Number</label>
+                    <input type="text" id="messageNumber" name="number" class="form-input" required 
+                           placeholder="+1234567890">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label for="messageText" class="form-label">Message</label>
+                    <textarea id="messageText" name="message" class="form-input" rows="4" required 
+                              placeholder="Enter your message here..."></textarea>
+                  </div>
+
+                  <!-- Media sending toggle and inputs (simplified) -->
+                  <div class="form-group" style="margin-top: 0.5rem;">
+                    <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="sendMediaToggle"> Send media (image, video, audio, document)
+                    </label>
+                    <div id="mediaInputs" style="display: none; margin-top: 0.75rem;">
+                      <div class="form-group">
+                        <input type="file" id="mediaFile" accept="image/*,video/*,audio/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip" class="form-input">
+                        <small class="text-muted">Max ~16MB (WhatsApp limits). Larger files may fail.</small>
+                      </div>
+                      <div class="form-group" style="display:flex; gap:1rem; flex-wrap:wrap;">
+                        <label class="form-label"><input type="checkbox" id="optSendAsDoc"> Send as document</label>
+                        <label class="form-label"><input type="checkbox" id="optVoiceNote"> Send audio as voice note</label>
+                      </div>
+                      <div class="form-group">
+                        <label for="mediaCaption" class="form-label">Caption (optional)</label>
+                        <input type="text" id="mediaCaption" class="form-input" placeholder="Enter caption for media">
+                      </div>
+                      <div id="mediaPreview" style="display:none; margin-top: 0.5rem;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; position: sticky; bottom: 0; background: var(--card-bg, #fff); padding-top: 0.75rem; border-top: 1px solid var(--border-color);">
+                  <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                  <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html> 
