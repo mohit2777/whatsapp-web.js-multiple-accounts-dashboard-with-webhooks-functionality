@@ -1,0 +1,15 @@
+name: Trigger n8n workflows (every 5 minutes)
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "*/5 * * * *"  # every 5 minutes UTC
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping n8n webhook A
+        run: |
+          curl -fsS -m 20 --retry 3 --retry-delay 5 -X POST "https://n8n-latest-rqq5.onrender.com/webhook/2c36a7de-4845-49ab-a007-6478c0e175aa"
+      - name: Ping n8n webhook B
+        run: |
+          curl -fsS -m 20 --retry 3 --retry-delay 5 -X POST "https://n8n-latest-rqq5.onrender.com/webhook/2cf1a4bf-e82f-4cfc-bbcf-a859bb0f45df"
